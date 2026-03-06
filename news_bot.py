@@ -16,9 +16,15 @@ DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
 JST = timezone(timedelta(hours=9))
 
 RSS_FEEDS = {
-    "🤖 テクノロジー・AI": [
+    "🤖 テクノロジー・IT": [
+        # MIT Technology Review（AI・機械学習）
+        "https://www.technologyreview.com/feed/",
+        # GIGAZINE（ガジェット・ハードウェア・新サービス）
         "https://gigazine.net/news/rss_2.0/",
-        "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
+        # The Hacker News（セキュリティ・サイバー）
+        "https://feeds.feedburner.com/TheHackersNews",
+        # TechCrunch（スタートアップ・新サービス）
+        "https://techcrunch.com/feed/",
     ],
     "💰 経済・マーケット": [
         # ロイター 日本語（株・為替・マーケット速報）
