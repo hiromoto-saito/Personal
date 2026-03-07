@@ -17,14 +17,14 @@ JST = timezone(timedelta(hours=9))
 
 RSS_FEEDS = {
     "🤖 テクノロジー・IT": [
-        # GIGAZINE（AI・ガジェット・新サービス）
-        "https://gigazine.net/news/rss_2.0/",
         # ITmedia NEWS（IT全般・スタートアップ）
         "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
         # ITmedia セキュリティ（サイバー・セキュリティ）
         "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",
         # Engadget 日本版（ガジェット・ハードウェア）
         "https://japanese.engadget.com/rss.xml",
+         # GIGAZINE（AI・ガジェット・新サービス）
+        "https://gigazine.net/news/rss_2.0/",
     ],
     "💰 経済・マーケット": [
         # Yahoo!ニュース 経済（国内経済全般）
