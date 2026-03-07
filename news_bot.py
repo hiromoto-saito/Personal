@@ -31,8 +31,8 @@ RSS_FEEDS = {
         "https://news.yahoo.co.jp/rss/topics/business.xml",
         # NHK 経済（日本経済・景気）
         "https://www3.nhk.or.jp/rss/news/cat5.xml",
-        # 東洋経済オンライン（マーケット・企業動向）
-        "https://toyokeizai.net/list/feed/rss",
+        # ブルームバーグ 日本語版（経済政策・金融ニュース）
+        "https://www.bloomberg.co.jp/feeds/bpol/sitemap_news.xml",
         # ダイヤモンド・オンライン（経済解説・マーケット）
         "https://diamond.jp/list/feed/rss",
     ],
