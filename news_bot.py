@@ -17,7 +17,7 @@ JST = timezone(timedelta(hours=9))
 
 RSS_FEEDS = {
     "🤖 テクノロジー・IT": [
-       # GIGAZINE（AI・ガジェット・新サービス・幅広くカバー）
+        # GIGAZINE（AI・ガジェット・新サービス・幅広くカバー）
         "https://gigazine.net/news/rss_2.0/",
         # ITmedia NEWS（IT全般・スタートアップ）
         "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
@@ -44,31 +44,37 @@ RSS_FEEDS = {
     ],
 }
 
-MAX_ARTICLES_PER_CATEGORY = 5
+MAX_ARTICLES_PER_CATEGORY = 8  # フィードごとに均等配分されるので多めに設定
 
 
 # ─── ニュース取得 ──────────────────────────────────────────────────────────────
 
 def fetch_articles(feeds: list[str], max_articles: int) -> list[dict]:
-    articles = []
+    # フィードごとに均等に件数を割り当てる
+    per_feed = max(1, max_articles // len(feeds))
+    all_articles = []
+
     for url in feeds:
         try:
             feed = feedparser.parse(url)
+            count = 0
             for entry in feed.entries:
-                articles.append({
+                if count >= per_feed:
+                    break
+                all_articles.append({
                     "title": entry.get("title", "タイトルなし"),
                     "link":  entry.get("link", ""),
                 })
+                count += 1
         except Exception as e:
             print(f"[WARN] フィード取得失敗: {url} -> {e}")
 
+    # 重複排除
     seen, unique = set(), []
-    for a in articles:
+    for a in all_articles:
         if a["title"] not in seen:
             seen.add(a["title"])
             unique.append(a)
-        if len(unique) >= max_articles:
-            break
     return unique
 
 
