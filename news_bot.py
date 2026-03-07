@@ -23,6 +23,8 @@ RSS_FEEDS = {
         "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",
        # Gizmodo Japan（ガジェット・テクノロジー全般）
         "https://www.gizmodo.jp/index.xml",
+        # GIGAZINE（AI・ガジェット・新サービス）
+        "https://gigazine.net/news/rss_2.0/",
     ],
     "💰 経済・マーケット": [
         # Yahoo!ニュース 経済（国内経済全般）
