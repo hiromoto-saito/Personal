@@ -1,7 +1,7 @@
 """
 毎朝Discordにニュースを送信するボット（完全無料版）
 - RSSフィードからテクノロジー・経済・社会ニュースを取得
-- Discord Webhookで送信（AI要約なし）
+- Discord Webhookで送信（AI要約なし・日本語メディアのみ）
 """
 
 import os
@@ -17,34 +17,38 @@ JST = timezone(timedelta(hours=9))
 
 RSS_FEEDS = {
     "🤖 テクノロジー・IT": [
-        # GIGAZINE（AI・ガジェット・新サービス・幅広くカバー）
+        # GIGAZINE（AI・ガジェット・新サービス）
         "https://gigazine.net/news/rss_2.0/",
         # ITmedia NEWS（IT全般・スタートアップ）
         "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
         # ITmedia セキュリティ（サイバー・セキュリティ）
         "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",
-        # ASCII.jp（ガジェット・ハードウェア・新製品）
+        # ASCII.jp（ガジェット・ハードウェア）
         "https://ascii.jp/rss.xml",
     ],
     "💰 経済・マーケット": [
-        # ロイター 日本語（株・為替・マーケット速報）
-        "https://feeds.reuters.com/reuters/JPbusinessNews",
-        # Yahoo!ファイナンス（株・マーケット動向）
-        "https://news.yahoo.co.jp/rss/topics/stock.xml",
-        # NHK 経済（日本経済・景気全般）
+        # Yahoo!ニュース 経済（国内経済全般）
+        "https://news.yahoo.co.jp/rss/topics/business.xml",
+        # NHK 経済（日本経済・景気）
         "https://www3.nhk.or.jp/rss/news/cat5.xml",
-        # ロイター 世界経済（海外・グローバル動向）
-        "https://feeds.reuters.com/reuters/businessNews",
+        # 東洋経済オンライン（マーケット・企業動向）
+        "https://toyokeizai.net/list/feed/rss",
+        # ダイヤモンド・オンライン（経済解説・マーケット）
+        "https://diamond.jp/list/feed/rss",
     ],
     "🌍 社会・国際": [
+        # NHK 国際（海外ニュース日本語）
         "https://www3.nhk.or.jp/rss/news/cat6.xml",
+        # Yahoo!ニュース 国際（海外・国際情勢）
         "https://news.yahoo.co.jp/rss/topics/world.xml",
-        "https://feeds.bbci.co.uk/news/world/rss.xml",
-        "https://feeds.reuters.com/reuters/worldNews",
+        # 朝日新聞 国際（国際ニュース）
+        "https://www.asahi.com/rss/asahi/newsheadlines.rdf",
+        # 毎日新聞 国際（海外動向）
+        "https://mainichi.jp/rss/etc/mainichi-flash.rss",
     ],
 }
 
-MAX_ARTICLES_PER_CATEGORY = 8  # フィードごとに均等配分されるので多めに設定
+MAX_ARTICLES_PER_CATEGORY = 8
 
 
 # ─── ニュース取得 ──────────────────────────────────────────────────────────────
