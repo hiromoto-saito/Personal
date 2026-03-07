@@ -21,8 +21,8 @@ RSS_FEEDS = {
         "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
         # ITmedia セキュリティ（サイバー・セキュリティ）
         "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",
-        # Engadget 日本版（ガジェット・ハードウェア）
-        "https://japanese.engadget.com/rss.xml",
+       # Gizmodo Japan（ガジェット・テクノロジー全般）
+        "https://www.gizmodo.jp/index.xml",
     ],
     "💰 経済・マーケット": [
         # Yahoo!ニュース 経済（国内経済全般）
