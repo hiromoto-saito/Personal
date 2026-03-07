@@ -23,8 +23,8 @@ RSS_FEEDS = {
         "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
         # ITmedia セキュリティ（サイバー・セキュリティ）
         "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",
-        # ASCII.jp（ガジェット・ハードウェア）
-        "https://ascii.jp/rss.xml",
+        # Engadget 日本版（ガジェット・ハードウェア）
+        "https://japanese.engadget.com/rss.xml",
     ],
     "💰 経済・マーケット": [
         # Yahoo!ニュース 経済（国内経済全般）
@@ -39,12 +39,12 @@ RSS_FEEDS = {
     "🌍 社会・国際": [
         # NHK 国際（海外ニュース日本語）
         "https://www3.nhk.or.jp/rss/news/cat6.xml",
-        # Yahoo!ニュース 国際（海外・国際情勢）
-        "https://news.yahoo.co.jp/rss/topics/world.xml",
-        # 朝日新聞 国際（国際ニュース）
-        "https://www.asahi.com/rss/asahi/newsheadlines.rdf",
-        # 毎日新聞 国際（海外動向）
-        "https://mainichi.jp/rss/etc/mainichi-flash.rss",
+        # BBC News Japan（英語圏メディアの日本語記事）
+        "https://www.bbc.com/japanese/index.xml",
+        # ロイター 日本語（英語圏メディアの日本語速報）
+        "https://jp.reuters.com/rssFeed/topNews",
+        # CNN Japan（英語圏メディアの日本語記事）
+        "https://www.cnn.co.jp/rss/cnn_topstories.rdf",
     ],
 }
 
