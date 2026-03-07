@@ -39,12 +39,12 @@ RSS_FEEDS = {
     "🌍 社会・国際": [
         # NHK 国際（海外ニュース日本語）
         "https://www3.nhk.or.jp/rss/news/cat6.xml",
-        # BBC News Japan（英語圏メディアの日本語記事）
-        "https://www.bbc.com/japanese/index.xml",
-        # ロイター 日本語（英語圏メディアの日本語速報）
-        "https://jp.reuters.com/rssFeed/topNews",
-        # CNN Japan（英語圏メディアの日本語記事）
-        "https://www.cnn.co.jp/rss/cnn_topstories.rdf",
+        # CNN Japan（米CNNの日本語版）
+        "https://feeds.cnn.co.jp/rss/cnn/cnn.rdf",
+        # AFPBB News（AFP通信の日本語版・国際速報）
+        "https://feeds.afpbb.com/rss/afpbb/afpbbnews",
+        # Yahoo!ニュース 国際
+        "https://news.yahoo.co.jp/rss/topics/world.xml",
     ],
 }
 
