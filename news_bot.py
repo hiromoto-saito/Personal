@@ -23,8 +23,8 @@ RSS_FEEDS = {
         "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
         # ITmedia セキュリティ（サイバー・セキュリティ）
         "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",
-        # Impress Watch（ガジェット・ハードウェア）
-        "https://www.watch.impress.co.jp/data/rss/1.0/ipw/feed.rdf",
+        # ASCII.jp（ガジェット・ハードウェア・新製品）
+        "https://ascii.jp/rss.xml",
     ],
     "💰 経済・マーケット": [
         # ロイター 日本語（株・為替・マーケット速報）
