@@ -38,36 +38,36 @@ RSS_FEEDS = {
     "🏛️ 政治": {
         "max": 6,
         "feeds": [
-            "https://www3.nhk.or.jp/rss/news/cat4.xml",        # NHK 政治
-            "https://news.yahoo.co.jp/rss/topics/domestic.xml",  # Yahoo!ニュース 国内
+            ("NHK 政治", "https://www3.nhk.or.jp/rss/news/cat4.xml"),
+            ("Yahoo!ニュース 国内", "https://news.yahoo.co.jp/rss/topics/domestic.xml"),
         ],
     },
     "💰 経済・マーケット": {
         "max": 8,
         "feeds": [
-            "https://www3.nhk.or.jp/rss/news/cat5.xml",          # NHK 経済
-            "https://news.yahoo.co.jp/rss/topics/business.xml",  # Yahoo!ニュース 経済
-            "https://toyokeizai.net/list/feed/rss",              # 東洋経済オンライン
-            "https://diamond.jp/list/feed/rss",                  # ダイヤモンド・オンライン
+            ("NHK 経済", "https://www3.nhk.or.jp/rss/news/cat5.xml"),
+            ("Yahoo!ニュース 経済", "https://news.yahoo.co.jp/rss/topics/business.xml"),
+            ("東洋経済オンライン", "https://toyokeizai.net/list/feed/rss"),
+            ("ダイヤモンド・オンライン", "https://diamond.jp/list/feed/rss"),
         ],
     },
     "🌍 国際": {
         "max": 8,
         "feeds": [
-            "https://www3.nhk.or.jp/rss/news/cat6.xml",          # NHK 国際
-            "https://feeds.bbci.co.uk/japanese/rss.xml",         # BBCニュース 日本語
-            "https://feeds.afpbb.com/rss/afpbb/afpbbnews",       # AFPBB News
-            "https://feeds.cnn.co.jp/rss/cnn/cnn.rdf",           # CNN Japan
-            "https://news.yahoo.co.jp/rss/topics/world.xml",     # Yahoo!ニュース 国際
+            ("NHK 国際", "https://www3.nhk.or.jp/rss/news/cat6.xml"),
+            ("BBCニュース 日本語", "https://feeds.bbci.co.uk/japanese/rss.xml"),
+            ("AFPBB News", "https://feeds.afpbb.com/rss/afpbb/afpbbnews"),
+            ("CNN Japan", "https://feeds.cnn.co.jp/rss/cnn/cnn.rdf"),
+            ("Yahoo!ニュース 国際", "https://news.yahoo.co.jp/rss/topics/world.xml"),
         ],
     },
     "🤖 テクノロジー・IT": {
         "max": 6,
         "feeds": [
-            "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",  # ITmedia NEWS
-            "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml",  # ITmedia セキュリティ
-            "https://gigazine.net/news/rss_2.0/",                  # GIGAZINE
-            "https://www.gizmodo.jp/index.xml",                    # Gizmodo Japan
+            ("ITmedia NEWS", "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml"),
+            ("ITmedia セキュリティ", "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml"),
+            ("GIGAZINE", "https://gigazine.net/news/rss_2.0/"),
+            ("Gizmodo Japan", "https://www.gizmodo.jp/index.xml"),
         ],
     },
 }
@@ -119,7 +119,7 @@ def entry_published(entry) -> datetime | None:
     return None
 
 
-def fetch_feed(url: str) -> list[dict]:
+def fetch_feed(source: str, url: str) -> list[dict]:
     """1つのフィードを取得して記事のリストを返す（新しい順）"""
     resp = requests.get(url, headers=REQUEST_HEADERS, timeout=15)
     resp.raise_for_status()
@@ -137,6 +137,7 @@ def fetch_feed(url: str) -> list[dict]:
             "title": title,
             "link": link,
             "key": normalize_link(link),
+            "source": source,
             "published": entry_published(entry),
         })
     articles.sort(key=lambda a: a["published"] or datetime.min.replace(tzinfo=timezone.utc),
@@ -144,7 +145,7 @@ def fetch_feed(url: str) -> list[dict]:
     return articles
 
 
-def pick_articles(feeds: list[str], max_articles: int, now: datetime,
+def pick_articles(feeds: list[tuple[str, str]], max_articles: int, now: datetime,
                   history: dict[str, str], taken: set[str]) -> tuple[list[dict], list[str]]:
     """
     各フィードから新しい未配信記事を集め、フィードを順番に巡って1件ずつ選ぶ。
@@ -153,19 +154,19 @@ def pick_articles(feeds: list[str], max_articles: int, now: datetime,
     fresh_cutoff = now - timedelta(hours=FRESH_HOURS)
     candidates, failed = [], []
 
-    for url in feeds:
+    for source, url in feeds:
         try:
-            articles = fetch_feed(url)
+            articles = fetch_feed(source, url)
         except Exception as e:
             print(f"[WARN] フィード取得失敗: {url} -> {e}")
-            failed.append(url)
+            failed.append(source)
             continue
         usable = [
             a for a in articles
             if (a["published"] is None or a["published"] >= fresh_cutoff)
             and not any(k in history or k in taken for k in history_keys(a))
         ]
-        print(f"[INFO]   {url}: {len(articles)}件中 {len(usable)}件が新着")
+        print(f"[INFO]   {source}: {len(articles)}件中 {len(usable)}件が新着")
         candidates.append(usable)
 
     picked = []
@@ -214,9 +215,9 @@ def send_lines(lines: list[str]) -> None:
 
 
 def format_article(a: dict) -> str:
-    # [タイトル](<URL>) 形式：タイトルがリンクになり、<> でリンクプレビューを抑制する
-    title = a["title"].replace("[", "［").replace("]", "］")
-    return f"・[{title}](<{a['link']}>)"
+    # タイトルは普通の文字で表示し、末尾に出典名つきの小さなリンクを付ける
+    # （<> で囲むとDiscordのリンクプレビューが出ない）
+    return f"・{a['title']}　[🔗{a['source']}](<{a['link']}>)"
 
 
 # ─── メイン ───────────────────────────────────────────────────────────────────
@@ -249,7 +250,7 @@ def main():
 
     lines.append("\n" + "─" * 30)
     if all_failed:
-        lines.append(f"⚠️ 取得に失敗したフィード: {len(all_failed)}件（Actionsのログを確認）")
+        lines.append(f"⚠️ 取得に失敗したフィード: {'、'.join(all_failed)}")
     lines.append(f"✅ 以上 {total}件！今日も一日がんばろう 💪")
 
     send_lines(lines)
