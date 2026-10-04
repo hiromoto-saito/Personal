@@ -2,8 +2,8 @@ name: 毎朝ニュース送信
 
 on:
   schedule:
-    # UTC 1:00 = 日本時間 10:00（GitHubの混雑で数十分遅れることがある）
-    - cron: "0 1 * * *"
+    # UTC 21:47 = 日本時間 6:47。毎時0分は混雑して大きく遅れやすいので避ける
+    - cron: "47 21 * * *"
   workflow_dispatch:
 
 # 配信履歴（sent_history.json）をリポジトリに書き戻すための権限
