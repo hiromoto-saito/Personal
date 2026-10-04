@@ -38,25 +38,28 @@ RSS_FEEDS = {
     "🏛️ 政治": {
         "max": 6,
         "feeds": [
-            ("NHK 政治", "https://www3.nhk.or.jp/rss/news/cat4.xml"),
+            ("NHK 政治", "https://news.web.nhk/n-data/conf/na/rss/cat4.xml"),
+            ("産経 政治", "https://assets.wor.jp/rss/rdf/sankei/politics.rdf"),
+            ("読売 政治", "https://assets.wor.jp/rss/rdf/yomiuri/politics.rdf"),
             ("Yahoo!ニュース 国内", "https://news.yahoo.co.jp/rss/topics/domestic.xml"),
         ],
     },
     "💰 経済・マーケット": {
         "max": 8,
         "feeds": [
-            ("NHK 経済", "https://www3.nhk.or.jp/rss/news/cat5.xml"),
+            ("NHK 経済", "https://news.web.nhk/n-data/conf/na/rss/cat5.xml"),
+            ("日経 経済", "https://assets.wor.jp/rss/rdf/nikkei/economy.rdf"),
             ("Yahoo!ニュース 経済", "https://news.yahoo.co.jp/rss/topics/business.xml"),
             ("東洋経済オンライン", "https://toyokeizai.net/list/feed/rss"),
-            ("ダイヤモンド・オンライン", "https://diamond.jp/list/feed/rss"),
+            ("ダイヤモンド・オンライン", "https://diamond.jp/list/feed/rss/dol"),
         ],
     },
     "🌍 国際": {
         "max": 8,
         "feeds": [
-            ("NHK 国際", "https://www3.nhk.or.jp/rss/news/cat6.xml"),
+            ("NHK 国際", "https://news.web.nhk/n-data/conf/na/rss/cat6.xml"),
             ("BBCニュース 日本語", "https://feeds.bbci.co.uk/japanese/rss.xml"),
-            ("AFPBB News", "https://feeds.afpbb.com/rss/afpbb/afpbbnews"),
+            ("産経 国際", "https://assets.wor.jp/rss/rdf/sankei/world.rdf"),
             ("CNN Japan", "https://feeds.cnn.co.jp/rss/cnn/cnn.rdf"),
             ("Yahoo!ニュース 国際", "https://news.yahoo.co.jp/rss/topics/world.xml"),
         ],
@@ -65,7 +68,9 @@ RSS_FEEDS = {
         "max": 6,
         "feeds": [
             ("ITmedia NEWS", "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml"),
-            ("ITmedia セキュリティ", "https://rss.itmedia.co.jp/rss/2.0/securitynews.xml"),
+            ("日経クロステック", "https://xtech.nikkei.com/rss/index.rdf"),
+            ("Publickey", "https://www.publickey1.jp/atom.xml"),
+            ("ITmedia セキュリティ", "https://rss.itmedia.co.jp/rss/2.0/news_security.xml"),
             ("GIGAZINE", "https://gigazine.net/news/rss_2.0/"),
             ("Gizmodo Japan", "https://www.gizmodo.jp/index.xml"),
         ],
