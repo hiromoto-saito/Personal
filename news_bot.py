@@ -59,11 +59,9 @@ RSS_FEEDS = {
         "max": 6,
         "feeds": [
             ("日経 マーケット", "https://assets.wor.jp/rss/rdf/nikkei/markets.rdf"),
-            # ロイターは公式RSSが無いため、Googleニュースで市況関連の記事を検索して取る
-            ("ロイター", "https://news.google.com/rss/search?hl=ja&gl=JP&ceid=JP:ja&q="
-             "site:jp.reuters.com%20%28%E6%A0%AA%E5%BC%8F%E5%B8%82%E5%A0%B4%20OR%20%E5%A4%96%E7%82%BA%E5%B8%82%E5%A0%B4%20OR%20%E5%82%B5%E5%88%B8%E5%B8%82%E5%A0%B4%20OR%20%E6%97%A5%E7%B5%8C%E5%B9%B3%E5%9D%87%20OR%20NY%E6%A0%AA%20OR%20%E7%B1%B3%E5%9B%BD%E6%A0%AA%20OR%20%E3%83%89%E3%83%AB/%E5%86%86%29%20when:1d"),
+            ("Investing.com 株式", "https://jp.investing.com/rss/news_25.rss"),
             ("Investing.com 経済指標", "https://jp.investing.com/rss/news_95.rss"),
-            ("Investing.com 市況", "https://jp.investing.com/rss/news_1.rss"),
+            ("Investing.com 為替", "https://jp.investing.com/rss/news_1.rss"),
         ],
     },
     "🌍 国際": {
@@ -88,6 +86,9 @@ RSS_FEEDS = {
         ],
     },
 }
+
+# タイトルにこの語を含む記事は送らない（Investing.comの個別企業向けレポートなど）
+EXCLUDE_TITLE_WORDS = ["Research Memo"]
 
 # 冒頭に表示する指標（表示名, Yahoo!ファイナンスのシンボル, 小数点以下の桁数, 変化を%で出すか）
 MARKET_INDICATORS = [
@@ -159,8 +160,8 @@ def fetch_feed(source: str, url: str) -> list[dict]:
     for entry in feed.entries:
         title = " ".join(entry.get("title", "").split())
         link = entry.get("link", "")
-        if "news.google.com" in link:  # 末尾の「 - 媒体名」を除く
-            title = title.rsplit(" - ", 1)[0]
+        if any(w in title for w in EXCLUDE_TITLE_WORDS):
+            continue
         if not title or not link:
             continue
         articles.append({
