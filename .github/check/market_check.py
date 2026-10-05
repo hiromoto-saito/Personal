@@ -1,24 +1,25 @@
-# 一時的な確認用スクリプト（マーケット枠の候補フィードと数値取得元をGitHub上で試す）
-import datetime, json
+# 一時的な確認用スクリプト（マーケット枠の候補フィードと数値取得元をGitHub上で試す）その2
+import datetime, re
 import feedparser, requests
 H = {"User-Agent": "Mozilla/5.0 (compatible; daily-news-bot/2.0)"}
+GN = "https://news.google.com/rss/search?hl=ja&gl=JP&ceid=JP:ja&q="
 FEEDS = {
     "日経 マーケット": "https://assets.wor.jp/rss/rdf/nikkei/markets.rdf",
-    "日経 マーケット2": "https://assets.wor.jp/rss/rdf/nikkei/market.rdf",
-    "ロイター 経済": "https://assets.wor.jp/rss/rdf/reuters/business.rdf",
-    "ロイター 市場": "https://assets.wor.jp/rss/rdf/reuters/markets.rdf",
-    "ブルームバーグ": "https://assets.wor.jp/rss/rdf/bloomberg/top.rdf",
-    "ブルームバーグ 市場": "https://assets.wor.jp/rss/rdf/bloomberg/markets.rdf",
-    "株探 ニュース": "https://kabutan.jp/rss/news",
-    "株探 市況": "https://kabutan.jp/news/marketnews/rss",
-    "みんかぶ": "https://minkabu.jp/news/rss",
-    "Yahoo!ファイナンス": "https://news.yahoo.co.jp/rss/media/finance/all.xml",
-    "ZAi": "https://diamond.jp/zai/list/feed/rss",
-    "東洋経済 マーケット": "https://toyokeizai.net/list/feed/rss/category/market",
-    "モーニングスター": "https://www.morningstar.co.jp/rss/news.xml",
-    "fisco": "https://web.fisco.jp/platform/rss/news",
-    "トレーダーズ": "https://www.traders.co.jp/rss/news.xml",
-    "NHK 経済": "https://news.web.nhk/n-data/conf/na/rss/cat5.xml",
+    "時事 経済(wor)": "https://assets.wor.jp/rss/rdf/jiji/economy.rdf",
+    "産経 経済(wor)": "https://assets.wor.jp/rss/rdf/sankei/economy.rdf",
+    "読売 経済(wor)": "https://assets.wor.jp/rss/rdf/yomiuri/economy.rdf",
+    "Investing 株式": "https://jp.investing.com/rss/news_25.rss",
+    "Investing 為替": "https://jp.investing.com/rss/news_1.rss",
+    "Investing 経済指標": "https://jp.investing.com/rss/news_95.rss",
+    "Investing 経済": "https://jp.investing.com/rss/news_14.rss",
+    "GoogleNews 市況": GN + "%E6%97%A5%E7%B5%8C%E5%B9%B3%E5%9D%87+OR+%E3%83%89%E3%83%AB%E5%86%86+OR+%E7%B1%B3%E5%9B%BD%E6%A0%AA+when:1d",
+    "GoogleNews 経済指標": GN + "%E9%9B%87%E7%94%A8%E7%B5%B1%E8%A8%88+OR+CPI+OR+GDP+OR+%E6%97%A5%E9%8A%80%E7%9F%AD%E8%A6%B3+OR+FOMC+when:1d",
+    "ロイター(GoogleNews)": GN + "site:jp.reuters.com+%E5%B8%82%E5%A0%B4+when:1d",
+    "Yahoo!ファイナンス news": "https://finance.yahoo.co.jp/rss/news",
+    "Yahoo トピ経済": "https://news.yahoo.co.jp/rss/topics/business.xml",
+    "minkabu FX": "https://fx.minkabu.jp/news/rss",
+    "ZAi FX": "https://zai.diamond.jp/list/feed/rss/fxnews",
+    "ITmedia ビジネス": "https://rss.itmedia.co.jp/rss/2.0/business.xml",
 }
 now = datetime.datetime.now(datetime.timezone.utc)
 for n, u in FEEDS.items():
@@ -29,23 +30,23 @@ for n, u in FEEDS.items():
         ts = [datetime.datetime(*t[:6], tzinfo=datetime.timezone.utc) for t in ts if t]
         fresh = sum(1 for t in ts if now - t < datetime.timedelta(hours=30))
         print(f"FEED {n}: http{r.status_code} {len(es)}件 新着{fresh} 最新{max(ts) if ts else None}")
-        for e in es[:4]:
-            print("   -", e.get("title", "")[:50])
+        for e in es[:5]:
+            print("   -", e.get("title", "")[:60], "|", e.get("link", "")[:60])
     except Exception as e:
         print(f"FEED {n}: ERR {str(e)[:100]}")
 
-for sym in ["^N225", "^DJI", "JPY=X", "^GSPC", "^IXIC", "^TNX"]:
-    for host in ["query1", "query2"]:
-        try:
-            r = requests.get(f"https://{host}.finance.yahoo.com/v8/finance/chart/{sym}",
-                             params={"range": "5d", "interval": "1d"}, headers=H, timeout=15)
-            m = r.json()["chart"]["result"][0]["meta"]
-            print(f"YAHOO {host} {sym}: http{r.status_code} price={m.get('regularMarketPrice')} prev={m.get('chartPreviousClose')} t={m.get('regularMarketTime')}")
-        except Exception as e:
-            print(f"YAHOO {host} {sym}: ERR {r.status_code if 'r' in dir() else ''} {str(e)[:80]}")
-for sym in ["^nkx", "^dji", "usdjpy", "^spx"]:
+try:
+    r = requests.get("https://www.wor.jp/rss/", headers=H, timeout=15)
+    print("WORINDEX", r.status_code, sorted(set(re.findall(r"assets\.wor\.jp/rss/rdf/[a-z0-9_]+/[a-z0-9_]+\.rdf", r.text)))[:300])
+except Exception as e:
+    print("WORINDEX ERR", e)
+
+for sym in ["^N225", "^DJI", "JPY=X", "^TOPX", "998405.T", "1306.T"]:
     try:
-        r = requests.get("https://stooq.com/q/l/", params={"s": sym, "f": "sd2t2ohlcv", "h": "", "e": "csv"}, headers=H, timeout=15)
-        print(f"STOOQ {sym}: http{r.status_code} {r.text.strip()[:150]!r}")
+        r = requests.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}",
+                         params={"range": "5d", "interval": "1d"}, headers=H, timeout=15)
+        res = r.json()["chart"]["result"][0]
+        closes = res["indicators"]["quote"][0]["close"]
+        print(f"YAHOO {sym}: ts={res.get('timestamp')} closes={closes} meta_price={res['meta'].get('regularMarketPrice')}")
     except Exception as e:
-        print(f"STOOQ {sym}: ERR {str(e)[:80]}")
+        print(f"YAHOO {sym}: ERR {str(e)[:80]}")
