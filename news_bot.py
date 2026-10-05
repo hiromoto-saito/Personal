@@ -1,6 +1,7 @@
 """
 毎朝Discordにニュースを送信するボット（完全無料版）
-- RSSフィードからテクノロジー・経済・政治・国際ニュースを取得
+- RSSフィードからテクノロジー・経済・マーケット・政治・国際ニュースを取得
+- 冒頭に主要な株価指数・為替の直近値と前日比を表示（Yahoo!ファイナンスの公開データ）
 - 配信済み記事を sent_history.json に記録し、翌日以降の重複配信を防ぐ
 - 公開から一定時間以上経った古い記事は送らない
 - Discord Webhookで送信（AI要約なし・日本語メディアのみ）
@@ -44,7 +45,7 @@ RSS_FEEDS = {
             ("Yahoo!ニュース 国内", "https://news.yahoo.co.jp/rss/topics/domestic.xml"),
         ],
     },
-    "💰 経済・マーケット": {
+    "💰 経済": {
         "max": 8,
         "feeds": [
             ("NHK 経済", "https://news.web.nhk/n-data/conf/na/rss/cat5.xml"),
@@ -52,6 +53,16 @@ RSS_FEEDS = {
             ("Yahoo!ニュース 経済", "https://news.yahoo.co.jp/rss/topics/business.xml"),
             ("東洋経済オンライン", "https://toyokeizai.net/list/feed/rss"),
             ("ダイヤモンド・オンライン", "https://diamond.jp/list/feed/rss/dol"),
+        ],
+    },
+    "📈 マーケット": {
+        "max": 6,
+        "feeds": [
+            ("日経 マーケット", "https://assets.wor.jp/rss/rdf/nikkei/markets.rdf"),
+            # ロイターは公式RSSが無いため、Googleニュースの検索結果から取る
+            ("ロイター", "https://news.google.com/rss/search?q=site:jp.reuters.com+%E5%B8%82%E5%A0%B4+when:1d&hl=ja&gl=JP&ceid=JP:ja"),
+            ("Investing.com 経済指標", "https://jp.investing.com/rss/news_95.rss"),
+            ("Investing.com 為替", "https://jp.investing.com/rss/news_1.rss"),
         ],
     },
     "🌍 国際": {
@@ -76,6 +87,17 @@ RSS_FEEDS = {
         ],
     },
 }
+
+# 冒頭に表示する指標（表示名, Yahoo!ファイナンスのシンボル, 小数点以下の桁数, 変化を%で出すか）
+MARKET_INDICATORS = [
+    ("日経平均", "^N225", 0, True),
+    ("NYダウ", "^DJI", 0, True),
+    ("S&P500", "^GSPC", 0, True),
+    ("ナスダック", "^IXIC", 0, True),
+    ("ドル円", "JPY=X", 2, False),
+    ("米10年債利回り", "^TNX", 3, False),
+]
+MARKET_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 
 REQUEST_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; daily-news-bot/2.0)"}
 WEEKDAYS_JA = "月火水木金土日"
@@ -136,6 +158,8 @@ def fetch_feed(source: str, url: str) -> list[dict]:
     for entry in feed.entries:
         title = " ".join(entry.get("title", "").split())
         link = entry.get("link", "")
+        if "news.google.com" in link:  # 末尾の「 - 媒体名」を除く
+            title = title.rsplit(" - ", 1)[0]
         if not title or not link:
             continue
         articles.append({
@@ -188,6 +212,38 @@ def pick_articles(feeds: list[tuple[str, str]], max_articles: int, now: datetime
     return picked, failed
 
 
+# ─── マーケット指標 ─────────────────────────────────────────────────────────────
+
+def fetch_indicator(symbol: str) -> tuple[float, float]:
+    """直近値と、その1つ前の営業日の終値を返す"""
+    resp = requests.get(MARKET_CHART_URL.format(symbol=symbol),
+                        params={"range": "5d", "interval": "1d"},
+                        headers=REQUEST_HEADERS, timeout=15)
+    resp.raise_for_status()
+    result = resp.json()["chart"]["result"][0]
+    closes = [c for c in result["indicators"]["quote"][0]["close"] if c is not None]
+    if len(closes) < 2:
+        raise ValueError("終値が足りません")
+    return closes[-1], closes[-2]
+
+
+def market_lines() -> tuple[list[str], bool]:
+    """指標ごとの表示行と、取得に失敗した指標があったかを返す"""
+    lines, failed = [], False
+    for name, symbol, digits, as_percent in MARKET_INDICATORS:
+        try:
+            last, prev = fetch_indicator(symbol)
+        except Exception as e:
+            print(f"[WARN] 指標取得失敗: {symbol} -> {e}")
+            failed = True
+            continue
+        diff = last - prev
+        arrow = "🔺" if diff > 0 else "🔻" if diff < 0 else "➖"
+        change = f"{diff / prev * 100:+.2f}%" if as_percent else f"{diff:+,.{digits}f}"
+        lines.append(f"・{name}　**{last:,.{digits}f}**　{arrow}{change}")
+    return lines, failed
+
+
 # ─── Discord送信 ───────────────────────────────────────────────────────────────
 
 def post_to_discord(content: str) -> None:
@@ -238,6 +294,14 @@ def main():
 
     lines = [f"# 📰 おはよう！{date_str} のニュースまとめ 👀", "─" * 30]
     all_failed, total = [], 0
+
+    print("[INFO] マーケット指標 取得中...")
+    indicators, indicator_failed = market_lines()
+    if indicator_failed:
+        all_failed.append("マーケット指標")
+    if indicators:
+        lines.append("\n**📊 マーケット指標**（直近値・前営業日比）")
+        lines += indicators
 
     for category, conf in RSS_FEEDS.items():
         print(f"[INFO] {category} 取得中...")

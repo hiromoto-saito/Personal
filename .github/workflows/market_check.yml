@@ -2,7 +2,7 @@ name: 一時確認（マーケット候補）
 on:
   push:
     branches: [add-market-news]
-    paths: [".github/check/**", ".github/workflows/market_check.yml"]
+    paths: ["news_bot.py", ".github/workflows/market_check.yml"]
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -13,4 +13,4 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - run: python .github/check/market_check.py
+      - run: DRY_RUN=1 python news_bot.py
