@@ -1,0 +1,16 @@
+name: 一時確認（TOPIX）
+on:
+  push:
+    branches: [add-topix]
+    paths: [".github/check/**", "news_bot.py", ".github/workflows/topix_check.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python .github/check/topix.py
