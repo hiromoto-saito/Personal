@@ -13,4 +13,4 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - run: python .github/check/topix.py
+      - run: DRY_RUN=1 python news_bot.py

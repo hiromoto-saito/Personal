@@ -13,6 +13,7 @@
 
 import json
 import os
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -93,6 +94,7 @@ EXCLUDE_TITLE_WORDS = ["Research Memo"]
 # 冒頭に表示する指標（表示名, Yahoo!ファイナンスのシンボル, 小数点以下の桁数, 変化を%で出すか）
 MARKET_INDICATORS = [
     ("日経平均", "^N225", 0, True),
+    ("TOPIX", "998405.T", 2, True),
     ("NYダウ", "^DJI", 0, True),
     ("S&P500", "^GSPC", 0, True),
     ("ナスダック", "^IXIC", 0, True),
@@ -100,6 +102,9 @@ MARKET_INDICATORS = [
     ("米10年債利回り", "^TNX", 3, False),
 ]
 MARKET_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+# TOPIXは上のAPIに無いため、Yahoo!ファイナンス（日本版）の銘柄ページから読み取る
+YJ_QUOTE_URL = "https://finance.yahoo.co.jp/quote/{symbol}"
+YJ_QUOTE_SYMBOLS = {"998405.T"}
 
 REQUEST_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; daily-news-bot/2.0)"}
 WEEKDAYS_JA = "月火水木金土日"
@@ -216,8 +221,21 @@ def pick_articles(feeds: list[tuple[str, str]], max_articles: int, now: datetime
 
 # ─── マーケット指標 ─────────────────────────────────────────────────────────────
 
+def fetch_yj_quote(symbol: str) -> tuple[float, float]:
+    """Yahoo!ファイナンス（日本版）のページに埋め込まれた現在値と前日比から計算する"""
+    resp = requests.get(YJ_QUOTE_URL.format(symbol=symbol), headers=REQUEST_HEADERS, timeout=15)
+    resp.raise_for_status()
+    m = re.search(r'"price":"([\d,.]+)".{0,80}?"changePrice":"([-+]?[\d,.]+)"', resp.text)
+    if not m:
+        raise ValueError("ページから値を読み取れませんでした")
+    last, change = (float(v.replace(",", "")) for v in m.groups())
+    return last, last - change
+
+
 def fetch_indicator(symbol: str) -> tuple[float, float]:
     """直近値と、その1つ前の営業日の終値を返す"""
+    if symbol in YJ_QUOTE_SYMBOLS:
+        return fetch_yj_quote(symbol)
     resp = requests.get(MARKET_CHART_URL.format(symbol=symbol),
                         params={"range": "5d", "interval": "1d"},
                         headers=REQUEST_HEADERS, timeout=15)
