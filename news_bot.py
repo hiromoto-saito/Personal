@@ -99,6 +99,8 @@ MARKET_INDICATORS = [
     ("S&P500", "^GSPC", 0, True),
     ("ナスダック", "^IXIC", 0, True),
     ("ドル円", "JPY=X", 2, False),
+    ("原油（WTI）", "CL=F", 2, True),
+    ("原油（北海ブレント）", "BZ=F", 2, True),
     ("米10年債利回り", "^TNX", 3, False),
 ]
 MARKET_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
