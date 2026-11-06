@@ -227,11 +227,38 @@ def fetch_yj_quote(symbol: str) -> tuple[float, float]:
     """Yahoo!ファイナンス（日本版）のページに埋め込まれた現在値と前日比から計算する"""
     resp = requests.get(YJ_QUOTE_URL.format(symbol=symbol), headers=REQUEST_HEADERS, timeout=15)
     resp.raise_for_status()
-    m = re.search(r'"price":"([\d,.]+)".{0,80}?"changePrice":"([-+]?[\d,.]+)"', resp.text)
-    if not m:
-        raise ValueError("ページから値を読み取れませんでした")
-    last, change = (float(v.replace(",", "")) for v in m.groups())
+    last, change = parse_yj_quote(resp.text, symbol)
     return last, last - change
+
+
+def parse_yj_quote(html: str, symbol: str) -> tuple[float, float]:
+    """
+    ページ内のJSONから (現在値, 前日比) を取り出す。
+    ページの作りは予告なく変わるため、キーの順番やエスケープの有無に左右されないように読む。
+      新形式（2026-11時点）: "code":"998405.T", ... "price":{"changePrice":"-232.40", ... "value":"3,707.99"}
+      旧形式: "price":"3,707.99", ... "changePrice":"-232.40"
+    """
+    text = html.replace('\\"', '"')  # JSONが文字列として埋め込まれている場合の \" を戻す
+    num = r'"([-+]?[\d,]+(?:\.\d+)?)"'
+
+    def to_float(v: str) -> float:
+        return float(v.replace(",", ""))
+
+    # 新形式: 銘柄コードの直後にある price オブジェクトの中を読む
+    for m in re.finditer(r'"code":"' + re.escape(symbol) + r'"', text):
+        obj = re.search(r'"price":\{([^{}]*)\}', text[m.end():m.end() + 1500])
+        if not obj:
+            continue
+        value = re.search(r'"value":' + num, obj.group(1))
+        change = re.search(r'"changePrice":' + num, obj.group(1))
+        if value and change:
+            return to_float(value.group(1)), to_float(change.group(1))
+
+    # 旧形式
+    m = re.search(r'"price":' + num + r'.{0,200}?"changePrice":' + num, text)
+    if m:
+        return to_float(m.group(1)), to_float(m.group(2))
+    raise ValueError("ページから値を読み取れませんでした（ページの作りが変わった可能性）")
 
 
 def fetch_indicator(symbol: str) -> tuple[float, float]:
